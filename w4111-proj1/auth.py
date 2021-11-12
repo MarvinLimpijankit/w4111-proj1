@@ -28,8 +28,8 @@ def register():
         if error is None:
             try:
                 g.conn.execute(
-                    "INSERT INTO users (user_id, username, email, password) VALUES (?, ?)",
-                    (username, password),
+                    "INSERT INTO users (user_id, username, email, password) VALUES (?, ?, ?)",
+                    (username, email, password),
                 )
                 g.conn.commit()
             except g.conn.IntegrityError:
@@ -38,4 +38,30 @@ def register():
                 return redirect(url_for("auth.login"))
 
         flash(error)
-    return render_template('auth/register.html')
+    return render_template('register.html')
+
+@bp.route('/login', methods=('GET', 'POST'))
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        g.conn = engine.connect()
+
+        error = None
+        user = g.conn.execute(
+            'SELECT * FROM users WHERE email = ?', (email,)
+        ).fetchone()
+
+        if user is None:
+            error = 'Incorrect email.'
+        elif not user['password'] != password:
+            error = 'Incorrect password.'
+
+        if error is None:
+            session.clear()
+            session['user_id'] = user['u_id']
+            return redirect(url_for('index'))
+
+        flash(error)
+
+    return render_template('login.html')

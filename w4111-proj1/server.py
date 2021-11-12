@@ -12,11 +12,11 @@ import os
   # accessible as a variable in index.html:
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, render_template, g, redirect, Response, Blueprint, session
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-app = Flask(__name__, template_folder=tmpl_dir)
 
+app = Flask(__name__, template_folder=tmpl_dir)
 
 #
 # The following is a dummy URI that does not connect to a valid database. You will need to modify it to connect to your Part 2 database in order to use the data.
@@ -47,7 +47,6 @@ engine = create_engine(DATABASEURI)
 #  name text
 #);""")
 #engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
-
 
 @app.before_request
 def before_request():
@@ -149,7 +148,7 @@ def index():
   # render_template looks in the templates/ folder for files.
   # for example, the below file reads template/index.html
   #
-  return render_template("index.html", **context)
+  return render_template("index.html")#, **context)
 
 #
 # This is an example of a different path.  You can see it at:
@@ -158,7 +157,8 @@ def index():
 #
 # Notice that the function name is another() rather than index()
 # The functions for each app.route need to have different names
-#
+#     
+
 @app.route('/another')
 def another():
   return render_template("another.html")
@@ -174,13 +174,10 @@ def add():
 
 @app.route('/login')
 def login():
-    abort(401)
-    this_is_never_executed()
-
+    return render_template("login.html")
 
 if __name__ == "__main__":
   import click
-
   @click.command()
   @click.option('--debug', is_flag=True)
   @click.option('--threaded', is_flag=True)
@@ -198,6 +195,8 @@ if __name__ == "__main__":
         python3 server.py --help
 
     """
+    import auth
+    app.register_blueprint(auth.bp)
 
     HOST, PORT = host, port
     print("running on %s:%d" % (HOST, PORT))
