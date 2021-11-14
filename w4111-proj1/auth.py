@@ -1,3 +1,6 @@
+#code credit: https://flask.palletsprojects.com/en/2.0.x/tutorial/views/
+
+import functools
 from sqlalchemy import *
 from sqlalchemy import exc
 from sqlalchemy.pool import NullPool
@@ -36,6 +39,9 @@ def register():
         user_id = g.conn.execute("SELECT COUNT(*) as c FROM users")
         for u in user_id:
             user_count = u['c']
+
+        #can add if email exists or user name exists (both of these are candidate keys)
+        #then we redirect straight to login
 
         #if neither is null
         if error is None:
@@ -87,3 +93,38 @@ def login():
         flash(error)
 
     return render_template('login.html')
+
+#will run before any view
+#determines which user is loggen in (if there is none, then g.user will be None)
+@bp.before_app_request
+def login_user():
+    user_id = session.get('user_id')
+
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = g.conn.execute(
+            "SELECT * FROM users WHERE u_id = %s", (user_id),
+        ).fetchone()
+
+#logouts of the session
+@bp.route('/logout')
+def logout():
+
+    session.clear()
+
+    #return to homepage
+    return redirect(url_for('index'))
+
+#allows for some URL to require login
+#will be helpful when seeing profile
+#and using our webstie in general
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+
+    return wrapped_view
