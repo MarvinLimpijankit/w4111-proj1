@@ -44,6 +44,7 @@ def register():
                     "INSERT INTO users (u_id, user_name, email, first_name, last_name, join_date, is_elite, password) VALUES (%s,%s,%s,%s,%s, NOW(), FALSE, %s)",
                     (user_count+1, username, email, first_name, last_name, password),
                 )
+            
             #didnt match a constraint
             except exc.IntegrityError:
                 error = "Invalid Input."
@@ -64,12 +65,18 @@ def login():
 
         error = None
         user = g.conn.execute(
-            "SELECT * FROM users WHERE email = ?", (email)
+            "SELECT * FROM users WHERE email = %s", (email),
         ).fetchone()
+
+        print("password_input:" + password)
+        print("password:" + user['password'])
+        print("pass_length", len(user['password']))
 
         if user is None:
             error = 'Incorrect email.'
-        elif user['password'] != password:
+        
+        #removes trailing spaces
+        elif not user['password'].strip() == password:
             error = 'Incorrect password.'
 
         if error is None:

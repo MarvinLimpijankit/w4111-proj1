@@ -195,6 +195,9 @@ if __name__ == "__main__":
         python3 server.py --help
 
     """
+
+    app.secret_key = 'max'
+
     import auth
     app.register_blueprint(auth.bp)
 
