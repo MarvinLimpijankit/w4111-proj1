@@ -45,7 +45,12 @@ def home():
     for urev in user_rev:
         r_rev.append(urev['r_id'])
 
-    return render_template('home.html', restaurants = restaurants, r_visited = r_visited, r_wish = r_wish, r_rev = r_rev)
+    #bug fix
+    print(r_visited)
+    print(r_wish)
+    print(r_rev)
+
+    return render_template('home.html', user=g.user, restaurants = restaurants, r_visited = r_visited, r_wish = r_wish, r_rev = r_rev)
 
 @bp.route('/profile')
 def profile():

@@ -17,15 +17,15 @@
             <div class = "desc"> A {{ r['restaurant_type'] }}-type restaurant in {{r['city']}},{{r['state']}} </div>
             <div class = "price_range">Price Range: {{ r['price_range'] }}</div>
             <div class = "phone_number">Contact: {{ r['phone_number'] }}</div>
-            <div class = "location">Address: {{ r['street_ad_1'].strip() }} {{ r['street_ad_2'].strip() }}, {{r['city'].strip()}}, {{r['state'].strip()}}, {{r['country'].strip()}} {{r['zipcode'].strip()}}</div>
+            <div class = "location">Address: {{ r['street_ad_1'] }} {{ r['street_ad_2'] }}, {{r['city']}}, {{r['state']}}, {{r['country']}} {{r['zipcode']}}</div>
             <div></div>
             <div class = "reserve">Reserve a Slot!</div>
-            {% if r not in r_visited %}
+            {% if r['r_id'] not in r_visited %}
                 <div class = "visited">Mark as Visited!</div>
-            {% elif r not in r_rev %}
+            {% elif r['r_id'] not in r_rev %}
                 <div class = "review">Visited already! Write a Review!</div>
             {% endif %}
-            {% if r not in r_wish %}
+            {% if r['r_id'] not in r_wish %}
                 <div class = "wishlist">Add to Wishlist!</div>
             {% endif %}
         </body> 

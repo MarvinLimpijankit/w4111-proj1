@@ -71,7 +71,7 @@ def login():
 
         error = None
         user = g.conn.execute(
-            "SELECT * FROM users WHERE email = %s", (email)#+" "*(256-len(email))),
+            "SELECT * FROM users WHERE email = %s", (email+" "*(256-len(email))),
         ).fetchone()
 
         if user is not None:
