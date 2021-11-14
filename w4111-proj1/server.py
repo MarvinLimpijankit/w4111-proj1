@@ -91,6 +91,9 @@ def teardown_request(exception):
 #
 @app.route('/')
 def index():
+  if g.user is not None:
+    print("USER ID:"+g.user['u_id'])
+    print("USER NAME:"+g.user['user_name'])
   """
   request is a special object that Flask provides to access web request information:
 
@@ -103,7 +106,7 @@ def index():
   """
 
   # DEBUG: this is debugging code to see what request looks like
-  print(request.args)
+  #print(request.args)
 
 
   #
@@ -148,33 +151,7 @@ def index():
   # render_template looks in the templates/ folder for files.
   # for example, the below file reads template/index.html
   #
-  return render_template("index.html")#, **context)
-
-#
-# This is an example of a different path.  You can see it at:
-# 
-#     localhost:8111/another
-#
-# Notice that the function name is another() rather than index()
-# The functions for each app.route need to have different names
-#     
-
-@app.route('/another')
-def another():
-  return render_template("another.html")
-
-
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
-  return redirect('/')
-
-
-@app.route('/login')
-def login():
-    return render_template("login.html")
+  return render_template("base.html", user = g.user)
 
 if __name__ == "__main__":
   import click
@@ -200,6 +177,9 @@ if __name__ == "__main__":
 
     import auth
     app.register_blueprint(auth.bp)
+
+    import apl
+    app.register_blueprint(apl.bp)
 
     HOST, PORT = host, port
     print("running on %s:%d" % (HOST, PORT))

@@ -1,11 +1,13 @@
+<!-- https://flask.palletsprojects.com/en/2.0.x/tutorial/templates/--> 
 <!doctype html>
 <title>{% block title %}{% endblock %}Resty</title>
 <nav>
-  <h1>Flaskr</h1>
+  <h1>Resty</h1>
   <ul>
-    {% if g.user %}
-      <li><span>{{ g.user['username'] }}</span>
+    {% if user %}
+      <li><span>{{ user['user_name'] }}</span>
       <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+        <li><a href="{{ url_for('apl.home') }}">Home</a>
     {% else %}
       <li><a href="{{ url_for('auth.register') }}">Register</a>
       <li><a href="{{ url_for('auth.login') }}">Log In</a>

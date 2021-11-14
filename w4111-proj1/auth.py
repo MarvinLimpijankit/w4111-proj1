@@ -71,12 +71,13 @@ def login():
 
         error = None
         user = g.conn.execute(
-            "SELECT * FROM users WHERE email = %s", (email),
+            "SELECT * FROM users WHERE email = %s", (email)#+" "*(256-len(email))),
         ).fetchone()
 
-        print("password_input:" + password)
-        print("password:" + user['password'])
-        print("pass_length", len(user['password']))
+        if user is not None:
+            print("password_input:" + password)
+            print("password:" + user['password'])
+            print("pass_length", len(user['password']))
 
         if user is None:
             error = 'Incorrect email.'
@@ -87,8 +88,10 @@ def login():
 
         if error is None:
             session.clear()
-            session['user_id'] = user['u_id']
-            return redirect(url_for('index'))
+            session['user_id'] = user['u_id'].strip()
+
+            #go to the logged-in home page
+            return redirect(url_for('apl.home'))
 
         flash(error)
 
