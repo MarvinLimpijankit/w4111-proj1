@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Users{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <body>
+        {% for u in user_followed %}
+            <div>Username: {{u['user_name']}}</div>
+            {% if u['follow_flag'] == 'true' %}
+                <div>Already Following!</div>
+            {% else %}
+                <!--USE HYPER LINK WHEN IMPLEMENTED THE FOLLOW LINK-->
+                <div>Click to Follow!</div>
+            {% endif %}
+            <br>
+        {% endfor %}
+    </body>
+{% endblock %}

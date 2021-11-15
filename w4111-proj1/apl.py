@@ -58,6 +58,7 @@ def home():
     return render_template('home.html', user=g.user, restaurants = restaurants, r_visited = r_visited, r_wish = r_wish, r_rev = r_rev)
 
 @bp.route('/profile')
+@login_required
 def profile():
     g.conn = engine.connect()
 
@@ -98,10 +99,25 @@ def profile():
         WHERE f.u_id = %s", (g.user['u_id'])
     ).fetchall()
 
-    for u in user_followed:
-        print(u['u_id'])
-
     return render_template('profile.html', user=g.user, res = reserve, visited = visited, wishlist = wishlist, user_followed = user_followed)
 
+
+@bp.route('/users')
+@login_required
+def users():
+    g.conn = engine.connect()
+
+    users_followed = g.conn.execute(
+        "SELECT u.u_id, u.user_name,\
+        CASE\
+            WHEN f.follows_since IS NULL THEN 'false'\
+            ELSE 'true' END AS follow_flag\
+        FROM users u\
+        LEFT JOIN follows f\
+        ON f.follows_id = u.u_id\
+        AND f.u_id = %s", (g.user['u_id'])
+    ).fetchall()
+
+    return render_template('users.html', user=g.user, user_followed = users_followed)
 
 #add routing reviewing, reservations, visited, wishlist
