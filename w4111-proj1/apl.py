@@ -2,6 +2,7 @@ from sqlalchemy import *
 from sqlalchemy import exc
 from sqlalchemy.pool import NullPool
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
+from sqlalchemy.sql.functions import user
 from auth import login_required
 
 bp = Blueprint('apl', __name__, url_prefix='/apl')
@@ -27,6 +28,9 @@ def home():
         ON r.r_id = cui.r_id",
     ).fetchall()
 
+    for r in restaurants:
+        print(r['trendy_flag'])
+
     #what has the user already visited
     user_visited = g.conn.execute(
         "SELECT v.r_id FROM users u LEFT JOIN visited v ON u.u_id = v.u_id WHERE u.u_id = %s", (g.user['u_id'])
@@ -51,11 +55,6 @@ def home():
     for urev in user_rev:
         r_rev.append(urev['r_id'])
 
-    #bug fix
-    print(r_visited)
-    print(r_wish)
-    print(r_rev)
-
     return render_template('home.html', user=g.user, restaurants = restaurants, r_visited = r_visited, r_wish = r_wish, r_rev = r_rev)
 
 @bp.route('/profile')
@@ -63,17 +62,46 @@ def profile():
     g.conn = engine.connect()
 
 #show user current reservations
-    visited = g.conn.execute(
-        "SELECT r.r_id, r.restaurant_name FROM users u\
-        LEFT JOIN visited v ON u.u_id = v.u_id\
-        LEFT JOIN restaurants r ON v.r_id = r.r_id\
+    reserve = g.conn.execute(
+        "SELECT res.*, r.name FROM users u\
+        LEFT JOIN reservations res ON u.u_id = res.u_id\
+        LEFT JOIN restaurants r ON res.r_id = r.r_id\
         WHERE u.u_id = %s", (g.user['u_id'])
     ).fetchall()
 
-#show users visited list
+#show users visited / reviews list
+    visited = g.conn.execute(
+        "SELECT r.r_id, r.name, v.date_visited, rev.* FROM users u\
+        LEFT JOIN visited v ON u.u_id = v.u_id\
+        LEFT JOIN restaurants r ON v.r_id = r.r_id\
+        LEFT JOIN reviews rev ON u.u_id = rev.u_id and rev.r_id = r.r_id\
+        WHERE u.u_id = %s", (g.user['u_id'])
+    ).fetchall()
+
 #show user wishlist
+    wishlist = g.conn.execute(
+        "SELECT r.r_id, r.name, w.date_added FROM users u\
+        LEFT JOIN wants_to_eat w ON u.u_id = w.u_id\
+        LEFT JOIN restaurants r ON w.r_id = r.r_id\
+        WHERE u.u_id = %s", (g.user['u_id'])
+    ).fetchall()
+
 #show list of followed users
-    return render_template('profile.html', user=g.user, )
+    user_followed = g.conn.execute(
+        "SELECT u.user_name, f.follows_since,\
+        CASE\
+            WHEN f2.u_id IS NULL THEN 'false'\
+            ELSE 'true' END AS u_id\
+        FROM follows f\
+        LEFT JOIN users u ON f.follows_id = u.u_id\
+        LEFT JOIN follows f2 ON f.follows_id = f2.u_id AND f2.follows_id = f.u_id\
+        WHERE f.u_id = %s", (g.user['u_id'])
+    ).fetchall()
+
+    for u in user_followed:
+        print(u['u_id'])
+
+    return render_template('profile.html', user=g.user, res = reserve, visited = visited, wishlist = wishlist, user_followed = user_followed)
 
 
 #add routing reviewing, reservations, visited, wishlist

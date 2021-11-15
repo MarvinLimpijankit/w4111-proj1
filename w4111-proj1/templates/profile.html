@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{user['user_name']}}'s Profile{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <hr>
+    <header>
+        <h1>Reservations</h1>
+    </header>
+    <body>
+        {% for r in res %}
+            <div>{{r['name']}} @ {{r['reservation_datetime']}} for {{r['party_size']}} people!</div>
+            <div>Reservation Created @ {{r['booking_datetime']}}</div>
+            {% if r['is_cancelled'] %}
+                <div>CANCELLED!!! at {{r['cancelled_datetime']}}</div>
+            {% endif %}
+            <br>
+        {% endfor %}
+    </body>
+
+    <hr>
+    <header>
+        <h1>Visited Restaurants</h1>
+    </header>
+    <body>
+        {% for r in visited %}
+            <div>{{r['name']}} @ {{r['date_visited']}}</div>
+            {% if r['rev_id'] %}
+                <div>Review: {{r['star_rating']}} Stars! @ {{r['created_date']}}</div>
+                {% if r['is_written'] %}
+                    <div>Post: {{r['text']}}</div>
+                {% endif %}
+            {% endif %}
+            <br>
+        {% endfor %}
+    </body>
+
+    <hr>
+    <header>
+        <h1>Wistlist</h1>
+    </header>
+    <body>
+        {% for r in wishlist %}
+            <div>{{r['name']}}, date added: {{r['date_added']}}</div>
+            <br>
+        {% endfor %}
+    </body>
+
+    <hr>
+    <header>
+        <h1>Connected Users </h1>
+    </header>
+    <body>
+        <ul>
+            {% for u in user_followed %}
+                {% if u['u_id'] == 'false' %}
+                    <li><div>You follow {{u['user_name']}}!</div>
+                {% else %}
+                    <li><div>{{u['user_name']}} is your friend! {{u['u_id']}}</div>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </body> 
+{% endblock %}
