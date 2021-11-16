@@ -25,11 +25,11 @@
             {% elif r['r_id'] not in r_rev %}
                 <div class = "review">Write a Review!</div>
             {% endif %}
+
             {% if r['r_id'] not in r_wish %}
-                <div class = "wishlist">Add to Wishlist!</div>
-            {% endif %}
-            {%if r['r_id'] in r_wish %}
-                <div class = "wishlist">Remove from Wishlist!</div>
+                <a href="{{ url_for('apl.wish', r_id = r['r_id']) }}">Add to Wishlist!</a><br>
+            {% else %}
+                <a href="{{ url_for('apl.unwish', r_id = r['r_id']) }}">Remove from Wishlist!</a><br>
             {% endif %}
         </body> 
     {% endfor %}

@@ -207,10 +207,9 @@ def visited():
 def follow(u_id):
     if request.method == 'GET':
         g.conn = engine.connect()
-        user_id = u_id
 
         g.conn.execute(
-            "INSERT INTO follows (u_id, follows_id, follows_since) VALUES(%s,%s,NOW())",(g.user['u_id'], user_id))
+            "INSERT INTO follows (u_id, follows_id, follows_since) VALUES(%s,%s,NOW())",(g.user['u_id'], u_id))
     
     return redirect(url_for('apl.users'))
 
@@ -220,11 +219,34 @@ def follow(u_id):
 def unfollow(u_id):
     if request.method == 'GET':
         g.conn = engine.connect()
-        user_id = u_id
 
         g.conn.execute(
-            "DELETE FROM follows f WHERE f.u_id = %s AND f.follows_id = %s",(g.user['u_id'], str(user_id)))
+            "DELETE FROM follows f WHERE f.u_id = %s AND f.follows_id = %s",(g.user['u_id'], str(u_id)))
     
     return redirect(url_for('apl.users'))
+
+# <a href="{{ url_for('apl.wish', r_id = r['r_id']) }}">Add to Wishlist!</a>
+@bp.route('/<int:r_id>/wish')
+@login_required
+def wish(r_id):
+    if request.method == 'GET':
+        g.conn = engine.connect()
+
+        g.conn.execute(
+            "INSERT INTO wants_to_eat (u_id, r_id, date_added) VALUES(%s,%s,NOW())",(g.user['u_id'], r_id))
+    
+    return redirect(url_for('apl.home'))
+
+# <a href="{{ url_for('apl.unwish', r_id = r['r_id']) }}">Remove from Wishlist!</a>
+@bp.route('/<int:r_id>/unwish')
+@login_required
+def unwish(r_id):
+    if request.method == 'GET':
+        g.conn = engine.connect()
+
+        g.conn.execute(
+            "DELETE FROM wants_to_eat w WHERE w.u_id = %s AND w.r_id = %s",(g.user['u_id'], str(r_id)))
+    
+    return redirect(url_for('apl.home'))
 
 
