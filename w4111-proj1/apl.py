@@ -198,5 +198,5 @@ def visited():
     for urev in user_rev:
         r_rev.append(urev['r_id'])
 
-    return render_template('visited.html', user=g.user, restaurants = restaurants, r_rev = r_rev)
+    return render_template('visited.html', user=g.user, restaurants = restaurants, r_rev = r_rev, r_visited = r_visited)
 
