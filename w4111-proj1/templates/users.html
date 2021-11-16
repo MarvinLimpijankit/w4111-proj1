@@ -10,9 +10,12 @@
             <div>Username: {{u['user_name']}}</div>
             {% if u['follow_flag'] == 'true' %}
                 <div>Already Following!</div>
+                <a href="{{ url_for('apl.unfollow', u_id = u['u_id']) }}">Unfollow</a>
+                <br>
             {% else %}
                 <!--USE HYPER LINK WHEN IMPLEMENTED THE FOLLOW LINK-->
-                <div>Click to Follow!</div>
+                <a href="{{ url_for('apl.follow', u_id = u['u_id']) }}">Click here to Follow!</a>
+                <br>
             {% endif %}
             <br>
         {% endfor %}

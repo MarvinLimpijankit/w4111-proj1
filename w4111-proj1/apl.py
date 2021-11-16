@@ -114,7 +114,8 @@ def users():
         FROM users u\
         LEFT JOIN follows f\
         ON f.follows_id = u.u_id\
-        AND f.u_id = %s", (g.user['u_id'])
+        AND f.u_id = %s\
+        WHERE u.u_id != %s", (g.user['u_id'],g.user['u_id'])
     ).fetchall()
 
     return render_template('users.html', user=g.user, user_followed = users_followed)
@@ -199,4 +200,31 @@ def visited():
         r_rev.append(urev['r_id'])
 
     return render_template('visited.html', user=g.user, restaurants = restaurants, r_rev = r_rev, r_visited = r_visited)
+
+# <a href="{{ url_for('apl.follow', u_id = u['u_id']) }}">Click here to Follow!</a>
+@bp.route('/<int:u_id>/follow')
+@login_required
+def follow(u_id):
+    if request.method == 'GET':
+        g.conn = engine.connect()
+        user_id = u_id
+
+        g.conn.execute(
+            "INSERT INTO follows (u_id, follows_id, follows_since) VALUES(%s,%s,NOW())",(g.user['u_id'], user_id))
+    
+    return redirect(url_for('apl.users'))
+
+#  <a href="{{ url_for('apl.unfollow', u_id = u['u_id']) }}">Unfollow</a>
+@bp.route('/<int:u_id>/unfollow')
+@login_required
+def unfollow(u_id):
+    if request.method == 'GET':
+        g.conn = engine.connect()
+        user_id = u_id
+
+        g.conn.execute(
+            "DELETE FROM follows f WHERE f.u_id = %s AND f.follows_id = %s",(g.user['u_id'], str(user_id)))
+    
+    return redirect(url_for('apl.users'))
+
 
