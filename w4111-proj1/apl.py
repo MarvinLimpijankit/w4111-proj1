@@ -101,7 +101,6 @@ def profile():
 
     return render_template('profile.html', user=g.user, res = reserve, visited = visited, wishlist = wishlist, user_followed = user_followed)
 
-
 @bp.route('/users')
 @login_required
 def users():
@@ -121,3 +120,83 @@ def users():
     return render_template('users.html', user=g.user, user_followed = users_followed)
 
 #add routing reviewing, reservations, visited, wishlist
+
+#Wishlist: similar to home, but only for restaurants in corresponding wants to eat
+@bp.route('/wishlist')
+@login_required
+def wishlist(): 
+    g.conn = engine.connect()
+
+    #querying restaurant info for all rsetaurant in users wants to eat
+    restaurants = g.conn.execute(
+        "WITH t1 AS(\
+            SELECT r.*, a.*, cui.cuisine FROM restaurants r\
+            LEFT JOIN addresses a ON r.a_id = a.a_id\
+            LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
+            FROM restaurants re\
+            LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
+            LEFT JOIN cuisines c ON ic.c_id = c.c_id\
+            GROUP BY re.r_id) as cui\
+            ON r.r_id = cui.r_id)\
+        SELECT DISTINCT t1.*\
+        FROM t1\
+        LEFT JOIN wants_to_eat w ON t1.r_id = w.r_id\
+        WHERE w.u_id = %s", (g.user['u_id']))
+
+    #what has the user already visited
+    user_visited = g.conn.execute(
+        "SELECT v.r_id FROM users u LEFT JOIN visited v ON u.u_id = v.u_id WHERE u.u_id = %s", (g.user['u_id'])
+    ).fetchall()
+    r_visited = []
+    for uv in user_visited:
+        r_visited.append(uv['r_id'])
+        
+    #what has the user already reviewed
+    user_rev = g.conn.execute(
+        "SELECT rev.r_id FROM users u LEFT JOIN reviews rev ON u.u_id = rev.u_id WHERE u.u_id = %s",(g.user['u_id'])
+    ).fetchall()
+    r_rev = []
+    for urev in user_rev:
+        r_rev.append(urev['r_id'])
+
+    return render_template('wishlist.html', user=g.user, restaurants = restaurants, r_visited = r_visited, r_rev = r_rev)
+
+#Visited: same as wishlist, but for wants to eat
+@bp.route('/visited')
+@login_required
+def visited(): 
+    g.conn = engine.connect()
+    
+    restaurants = g.conn.execute(
+        "WITH t1 AS(\
+            SELECT r.*, a.*, cui.cuisine FROM restaurants r\
+            LEFT JOIN addresses a ON r.a_id = a.a_id\
+            LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
+            FROM restaurants re\
+            LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
+            LEFT JOIN cuisines c ON ic.c_id = c.c_id\
+            GROUP BY re.r_id) as cui\
+            ON r.r_id = cui.r_id)\
+        SELECT DISTINCT t1.*\
+        FROM t1\
+        LEFT JOIN visited v ON t1.r_id = v.r_id\
+        WHERE v.u_id = %s", (g.user['u_id']))
+
+    #what has the user already visited
+    user_visited = g.conn.execute(
+        "SELECT v.r_id FROM users u LEFT JOIN visited v ON u.u_id = v.u_id WHERE u.u_id = %s", (g.user['u_id'])
+    ).fetchall()
+    r_visited = []
+    for uv in user_visited:
+        r_visited.append(uv['r_id'])
+        
+    #what has the user already reviewed
+    user_rev = g.conn.execute(
+        "SELECT rev.r_id FROM users u LEFT JOIN reviews rev ON u.u_id = rev.u_id WHERE u.u_id = %s",(g.user['u_id'])
+    ).fetchall()
+    r_rev = []
+    for urev in user_rev:
+        r_rev.append(urev['r_id'])
+
+    return render_template('visited.html', user=g.user, restaurants = restaurants, r_rev = r_rev)
+

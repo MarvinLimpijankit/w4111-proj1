@@ -146,7 +146,6 @@ def index():
   #
   context = dict(data = names)
 
-
   #
   # render_template looks in the templates/ folder for files.
   # for example, the below file reads template/index.html
