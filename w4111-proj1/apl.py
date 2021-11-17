@@ -4,6 +4,7 @@ from sqlalchemy.pool import NullPool
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
 from sqlalchemy.sql.functions import user
 from auth import login_required
+from datetime import datetime 
 
 bp = Blueprint('apl', __name__, url_prefix='/apl')
 
@@ -345,16 +346,16 @@ def reserve(r_id):
     res_name = res['name']
     
     if request.method == 'POST': 
-        print("POST")
         num_of_party = request.form['party_size']
         notes = request.form['body']
         reservation_date = request.form['date']
         reservation_time = request.form['time']
-        print(num_of_party)
-        print(notes)
-        print(type(reservation_date))
-        print(type(reservation_time))
-    
+
+        reservation_datetime = datetime.fromisoformat(reservation_date + " " + reservation_time)
+        
+        if(reservation_datetime < datetime.now()): 
+            return render_template('reserve.html', user = g.user, r_id = r_id, res_name = res_name, error = True)
+
         reservations = g.conn.execute("SELECT COUNT(*) as c FROM reservations")
         for u in reservations:
             res_count = u['c']
@@ -365,7 +366,7 @@ def reserve(r_id):
     
         return redirect(url_for('apl.home'))
     
-    return render_template('reserve.html', user = g.user, r_id = r_id, res_name = res_name)
+    return render_template('reserve.html', user = g.user, r_id = r_id, res_name = res_name, error = False)
 
 #Reservations: similar to home
 @bp.route('/reservations')
@@ -378,7 +379,8 @@ def reservations():
         'SELECT res.res_id, r.name, r.phone_number, res.reservation_datetime, res.is_cancelled, res.party_size, res.special_occassion\
          FROM reservations res\
          LEFT JOIN restaurants r ON res.r_id = r.r_id\
-         WHERE res.u_id = %s', g.user['u_id'])
+         WHERE res.u_id = %s\
+         ORDER BY res.reservation_datetime ASC', g.user['u_id'])
 
     return render_template('reservations.html', user=g.user, reservations = reservations)
 

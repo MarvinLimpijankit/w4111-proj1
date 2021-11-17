@@ -5,7 +5,7 @@
   <h1>Resty</h1>
   <ul>
     {% if user %}
-      <li><span>{{ user['user_name'] }}</span>
+      <li><span>User: {{ user['user_name'] }}</span>
       <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
       <li><a href="{{ url_for('apl.home') }}">Home</a>
       <li><a href="{{ url_for('apl.profile') }}">Profile</a>

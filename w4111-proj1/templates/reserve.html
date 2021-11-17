@@ -27,4 +27,8 @@
     <input type="time" name="time" step="1" required><br><br>
     <input type="submit" value="Reserve!">
   </form>
+  <br>
+  {% if error %}
+      <p> *Invalid reservation date, reservation not made
+  {% endif %}
 {% endblock %}

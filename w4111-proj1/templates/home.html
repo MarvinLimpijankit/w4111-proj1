@@ -23,6 +23,7 @@
             {% if r['r_id'] not in r_visited %}
                 <a href="{{ url_for('apl.visit', r_id = r['r_id']) }}">Mark as Visited!</a><br>
             {% else %}
+                <div class = "alredy_visited">Visited Before</div>
                 {% if r['r_id'] not in r_rev %}
                     <a href="{{ url_for('apl.visited') }}">Add a Review in your Visited Page!</a>
                     <br>
@@ -34,7 +35,7 @@
             {% if r['r_id'] not in r_wish %}
                 <a href="{{ url_for('apl.wish', r_id = r['r_id']) }}">Add to Wishlist!</a><br>
             {% else %}
-                <a href="{{ url_for('apl.unwish', r_id = r['r_id']) }}">Remove from Wishlist!</a><br>
+                <div class = "already_wishlist">Already on Wishlist!</div>
             {% endif %}
         </body> 
     {% endfor %}
