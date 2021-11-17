@@ -162,7 +162,7 @@ def wishlist():
 
     return render_template('wishlist.html', user=g.user, restaurants = restaurants, r_visited = r_visited, r_rev = r_rev)
 
-#Visited: same as wishlist, but for wants to eat
+#Visited: same as wishlist, but for visited
 @bp.route('/visited')
 @login_required
 def visited(): 
@@ -235,7 +235,7 @@ def wish(r_id):
         g.conn.execute(
             "INSERT INTO wants_to_eat (u_id, r_id, date_added) VALUES(%s,%s,NOW())",(g.user['u_id'], r_id))
     
-    return redirect(url_for('apl.home'))
+    return redirect(url_for('apl.wishlist'))
 
 # <a href="{{ url_for('apl.unwish', r_id = r['r_id']) }}">Remove from Wishlist!</a>
 @bp.route('/<int:r_id>/unwish')
@@ -247,7 +247,7 @@ def unwish(r_id):
         g.conn.execute(
             "DELETE FROM wants_to_eat w WHERE w.u_id = %s AND w.r_id = %s",(g.user['u_id'], str(r_id)))
     
-    return redirect(url_for('apl.home'))
+    return redirect(url_for('apl.wishlist'))
 
 # <a href="{{ url_for('apl.visit', r_id = r['r_id']) }}">Mark as Visisted!</a>
 @bp.route('/<int:r_id>/visit')
@@ -261,7 +261,7 @@ def visit(r_id):
         g.conn.execute(
             "INSERT INTO visited (u_id, r_id, date_visited) VALUES(%s,%s,NOW())",(g.user['u_id'], r_id))
         
-        return redirect(url_for('apl.home'))
+        return redirect(url_for('apl.visited'))
 
 # <a href="{{ url_for('apl.unvisit', r_id = r['r_id']) }}">Remove from Visited</a>
 @bp.route('/<int:r_id>/unvisit')
@@ -331,7 +331,7 @@ def review(r_id):
                 "INSERT INTO reviews (rev_id, star_rating, is_written, text, created_date, u_id, r_id)\
                 VALUES(%s,%s,%s,%s,NOW(),%s,%s)",(rev_count+1, int(stars), is_written, text_body, g.user['u_id'], r_id ))
 
-            return redirect(url_for('apl.home'))
+            return redirect(url_for('apl.visited'))
 
     return render_template('review.html', user = g.user, r_id = r_id, res_name = res_name)
 
@@ -354,7 +354,6 @@ def reserve(r_id):
         print(notes)
         print(type(reservation_date))
         print(type(reservation_time))
-        print
     
         reservations = g.conn.execute("SELECT COUNT(*) as c FROM reservations")
         for u in reservations:
@@ -368,7 +367,7 @@ def reserve(r_id):
     
     return render_template('reserve.html', user = g.user, r_id = r_id, res_name = res_name)
 
-#Reservations: similar to home, but only for restaurants in corresponding wants to eat
+#Reservations: similar to home
 @bp.route('/reservations')
 @login_required
 def reservations(): 
@@ -383,6 +382,7 @@ def reservations():
 
     return render_template('reservations.html', user=g.user, reservations = reservations)
 
+#cancel reservation
 @bp.route('/<int:res_id>/cancel_reservation')
 @login_required
 def cancel_reservation(res_id):
