@@ -22,8 +22,14 @@
             <div class = "reserve">Reserve a Slot!</div>
             {% if r['r_id'] not in r_visited %}
                 <div class = "visited">Mark as Visited!</div>
-            {% elif r['r_id'] not in r_rev %}
-                <div class = "review">Write a Review!</div>
+            {% else %}
+                {% if r['r_id'] not in r_rev %}
+                    <a href="{{ url_for('apl.review', r_id = r['r_id']) }}">Add a Review!</a>
+                    <br>
+                {% else %}
+                    <a href="{{ url_for('apl.review', r_id = r['r_id']) }}">Overwrite Your Review!</a>
+                    <br>
+                {% endif %}
             {% endif %}
 
             {% if r['r_id'] not in r_wish %}

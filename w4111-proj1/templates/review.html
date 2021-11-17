@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Reviewing: {{res_name}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="s_rating">Rating</label>
+    <input list="s_rating" name="s_rating" required>
+    <datalist id="s_rating">
+        <option value=1>1</option>
+        <option value=2>2</option>
+        <option value=3>3</option>
+        <option value=4>4</option>
+        <option value=5>5</option>
+    </datalist>
+
+    <label for="body">Body</label>
+    <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
+    <input type="submit" value="Post!">
+  </form>
+{% endblock %}

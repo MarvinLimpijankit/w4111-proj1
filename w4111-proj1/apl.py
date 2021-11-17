@@ -249,4 +249,58 @@ def unwish(r_id):
     
     return redirect(url_for('apl.home'))
 
+# <a href="{{ url_for('apl.review', r_id = r['r_id']) }}">Add a Review.</a>
+@bp.route('/<int:r_id>/review', methods=('GET', 'POST'))
+@login_required
+def review(r_id):
+    r_id = str(r_id)
+    res = g.conn.execute("SELECT * FROM restaurants r WHERE r_id = %s", (str(r_id))).fetchone()
+    res_name = res['name']
+
+    if request.method == 'POST':
+        print("POST")
+        #check if review already exists
+        exists_flag = ""
+        exists = g.conn.execute("SELECT * FROM reviews r WHERE r_id = %s AND u_id = %s", (r_id, g.user['u_id'])).fetchone()
+        if exists is not None:
+            exists_flag = True
+        else:
+            exists_flag = False
+
+        #parse html data
+        stars = request.form['s_rating']
+        text_body = request.form['body']
+
+        #checks if there is written text
+        is_written = 'TRUE'
+        if len(text_body) < 1:
+            is_written = 'FALSE'
+            text_body = 'NULL'
+
+
+        #if review already exists then set rev_id then update star_Rating, is_written, textbody
+        if exists_flag:
+            rev_id = exists['rev_id']
+
+            g.conn.execute("UPDATE reviews SET star_rating = %s, is_written = %s, text_body = %s\
+                WHERE rev_id = %s", (int(stars), is_written, text_body, rev_id))
+
+            return redirect(url_for('apl.home'))
+
+        #if not insert a new review in database
+        else:
+            #count number of reviews to use for rev_id
+            rev_count = 0
+            reviews = g.conn.execute("SELECT COUNT(*) as c FROM reviews")
+            for u in reviews:
+                rev_count = u['c']
+
+            g.conn.execute(
+                "INSERT INTO reviews (rev_id, star_rating, is_written, text, created_date, u_id, r_id)\
+                VALUES(%s,%s,%s,%s,NOW(),%s,%s)",(rev_count+1, int(stars), is_written, text_body, g.user['u_id'], r_id ))
+
+            return redirect(url_for('apl.home'))
+
+    return render_template('review.html', user = g.user, r_id = r_id, res_name = res_name)
+
 
