@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Reservations{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    {% for r in reservations %}
+        {% if not r['is_cancelled']%}
+        <hr>
+        <header>
+            <h1>{{ r['name'] }}</h1>
+        </header>
+        <body>
+            <div class = "phone_number">Contact: {{ r['phone_number'] }}</div>
+            <br><br>
+            <div class = "reservation_info">Reservation Info: </div>
+            <div class = "reservation_datetime">Date: {{ r['reservation_datetime']}}</div>
+            <div class = "reservation_party_size">Party Size: {{ r['party_size']}} People</div>
+            <div class = "notes_header"> Notes for Restaurant: </div>
+            <blockquote class = "notes_content"> {{ r['special_occassion']}} </blockquote> 
+            <br>
+            <a href="{{ url_for('apl.cancel_reservation', res_id = r['res_id']) }}">Cancel Reservation</a><br>
+        </body> 
+        {% endif %}
+    {% endfor %}
+{% endblock %}

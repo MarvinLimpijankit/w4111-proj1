@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Make a Reservation for: {{res_name}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="party_size">Party Size</label>
+    <input list="party_size" name="party_size" required>
+    <datalist id="party_size">
+        <option value=1>1</option>
+        <option value=2>2</option>
+        <option value=3>3</option>
+        <option value=4>4</option>
+        <option value=5>5</option>
+        <option value=6>6</option>
+        <option value=7>7</option>
+        <option value=8>8</option>
+    </datalist>
+    <br><br>
+    <label for="body">Notes for the restaurant:</label>
+    <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
+    <p>Reservation date?</p>
+    <input type="date" name="date" required>
+    <p>Reservation time?</p>
+    <input type="time" name="time" step="1" required><br><br>
+    <input type="submit" value="Reserve!">
+  </form>
+{% endblock %}

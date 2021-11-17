@@ -19,6 +19,7 @@
             <div class = "phone_number">Contact: {{ r['phone_number'] }}</div>
             <div class = "location">Address: {{ r['street_ad_1'] }} {{ r['street_ad_2'] }}, {{r['city']}}, {{r['state']}}, {{r['country']}} {{r['zipcode']}}</div>
             <div></div>
+            <a href="{{ url_for('apl.unvisit', r_id = r['r_id']) }}">Mark as Unvisited!</a><br>
             <div class = "reserve">Reserve a Slot!</div>
             {% if r['r_id'] not in r_visited %}
                 <div class = "visited">Mark as Visited!</div>

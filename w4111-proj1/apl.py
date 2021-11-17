@@ -249,6 +249,38 @@ def unwish(r_id):
     
     return redirect(url_for('apl.home'))
 
+# <a href="{{ url_for('apl.visit', r_id = r['r_id']) }}">Mark as Visisted!</a>
+@bp.route('/<int:r_id>/visit')
+@login_required
+def visit(r_id):
+    
+    if request.method == 'GET': 
+        
+        g.conn = engine.connect()
+        
+        g.conn.execute(
+            "INSERT INTO visited (u_id, r_id, date_visited) VALUES(%s,%s,NOW())",(g.user['u_id'], r_id))
+        
+        return redirect(url_for('apl.home'))
+
+# <a href="{{ url_for('apl.unvisit', r_id = r['r_id']) }}">Remove from Visited</a>
+@bp.route('/<int:r_id>/unvisit')
+@login_required
+def unvisit(r_id):
+    
+    if request.method == 'GET': 
+        
+        g.conn = engine.connect()
+        
+        g.conn.execute(
+            "DELETE FROM visited WHERE u_id = %s AND r_id = %s", (g.user['u_id'], str(r_id)))
+        
+        #ADD ALTERNATIVE: DELETE REVIEWS ASSOCIATED WITH u_id, r_id WHEN MARKING AS UNVISITED
+        #g.conn.execute(
+        #    "DELETE FROM revuews WHERE u_id = %s AND r_id = %s", (g.user['u_id'], str(r_id)))
+        
+        return redirect(url_for('apl.visited'))
+
 # <a href="{{ url_for('apl.review', r_id = r['r_id']) }}">Add a Review.</a>
 @bp.route('/<int:r_id>/review', methods=('GET', 'POST'))
 @login_required
@@ -303,4 +335,63 @@ def review(r_id):
 
     return render_template('review.html', user = g.user, r_id = r_id, res_name = res_name)
 
+# <a href="{{ url_for('apl.reserve', r_id = r['r_id']) }}">Reserve a Slot!.</a>
+@bp.route('/<int:r_id>/reserve', methods=('GET', 'POST'))
+@login_required
+def reserve(r_id):
+    
+    r_id = str(r_id)
+    res = g.conn.execute("SELECT * FROM restaurants r WHERE r_id = %s", (str(r_id))).fetchone()
+    res_name = res['name']
+    
+    if request.method == 'POST': 
+        print("POST")
+        num_of_party = request.form['party_size']
+        notes = request.form['body']
+        reservation_date = request.form['date']
+        reservation_time = request.form['time']
+        print(num_of_party)
+        print(notes)
+        print(type(reservation_date))
+        print(type(reservation_time))
+        print
+    
+        reservations = g.conn.execute("SELECT COUNT(*) as c FROM reservations")
+        for u in reservations:
+            res_count = u['c']
+        
+        g.conn.execute(
+            "INSERT INTO reservations (res_id, booking_datetime, reservation_datetime, is_cancelled, cancelled_datetime, party_size, special_occassion, u_id, r_id)\
+                VALUES(%s, NOW(), (TO_TIMESTAMP(%s, 'YYYY-MM-DD HH24:MI:SS')), NULL, NULL, %s, %s, %s, %s)", (res_count+1, reservation_date + " " + reservation_time, num_of_party, notes, g.user['u_id'], r_id))
+    
+        return redirect(url_for('apl.home'))
+    
+    return render_template('reserve.html', user = g.user, r_id = r_id, res_name = res_name)
 
+#Reservations: similar to home, but only for restaurants in corresponding wants to eat
+@bp.route('/reservations')
+@login_required
+def reservations(): 
+    
+    g.conn = engine.connect()
+
+    reservations = g.conn.execute(
+        'SELECT res.res_id, r.name, r.phone_number, res.reservation_datetime, res.is_cancelled, res.party_size, res.special_occassion\
+         FROM reservations res\
+         LEFT JOIN restaurants r ON res.r_id = r.r_id\
+         WHERE res.u_id = %s', g.user['u_id'])
+
+    return render_template('reservations.html', user=g.user, reservations = reservations)
+
+@bp.route('/<int:res_id>/cancel_reservation')
+@login_required
+def cancel_reservation(res_id):
+    
+    if request.method == 'GET': 
+        
+        g.conn = engine.connect()
+        
+        g.conn.execute(
+            "UPDATE reservations SET cancelled_datetime = NOW(), is_cancelled = TRUE WHERE res_id = %s", str(res_id))
+        
+        return redirect(url_for('apl.reservations'))
