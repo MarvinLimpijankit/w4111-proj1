@@ -12,8 +12,12 @@
             {% if r['trendy_flag']%}
                 <div class = "trendy">TRENDING!</div> 
             {% endif %}
+            {% if r['chain_flag'] == 'TRUE'%}
+                <div class = "chain_flag">Chain Restaurant!</div> 
+            {% endif %}
         </header>
         <body>
+            <br>
             <div class = "desc"> A {{ r['restaurant_type'] }}restaurant in {{r['city']}}, {{r['state']}}that serves {{r['cuisine']}} cuisine!</div>
             <div class = "price_range">Price Range: {{ r['price_range'] }}</div>
             <div class = "phone_number">Contact: {{ r['phone_number'] }}</div>

@@ -7,6 +7,14 @@
 {% block content %}
     <hr>
     <header>
+        {% if fav_cuisine == 'None' %}
+            <h1>No favorite cuisine yet!</h1>
+        {% else %}
+            <h1>Favorite Cuisine: {{fav_cuisine}}</h1>
+        {% endif %}
+    </header>
+    <hr>
+    <header>
         <h1>Reservations</h1>
     </header>
     <body>

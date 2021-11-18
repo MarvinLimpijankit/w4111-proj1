@@ -21,14 +21,20 @@ def home():
 #user can label a restaurant as visited or wishlisted
     g.conn = engine.connect()
     restaurants = g.conn.execute(
-        "SELECT r.*, a.*, cui.cuisine FROM restaurants r\
+        "SELECT r.*, a.*, cui.cuisine,\
+        CASE\
+            WHEN ic.r_id IS NULL THEN 'FALSE'\
+            ELSE 'TRUE' END AS chain_flag\
+        FROM restaurants r\
         LEFT JOIN addresses a ON r.a_id = a.a_id\
         LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
         FROM restaurants re\
         LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
         LEFT JOIN cuisines c ON ic.c_id = c.c_id\
         GROUP BY re.r_id) as cui\
-        ON r.r_id = cui.r_id",
+        ON r.r_id = cui.r_id\
+        LEFT JOIN is_chain ic\
+        ON ic.r_id = r.r_id"
     ).fetchall()
 
     for r in restaurants:
@@ -156,7 +162,22 @@ def profile():
         WHERE f.u_id = %s", (g.user['u_id'])
     ).fetchall()
 
-    return render_template('profile.html', user=g.user, res = reserve, visited = visited, wishlist = wishlist, user_followed = user_followed)
+
+#most common cuisine
+    most_common = g.conn.execute(
+        "SELECT cuisine_name\
+        FROM visited v\
+        LEFT JOIN is_cuisine ic ON ic.r_id = v.r_id\
+        LEFT JOIN cuisines c ON ic.c_id = c.c_id\
+        WHERE v.u_id = (%s)\
+        GROUP BY c.cuisine_name\
+        ORDER BY COUNT(*) DESC", (g.user['u_id'])
+    ).fetchone()
+
+    if most_common is not None:
+        most_common = most_common['cuisine_name']
+
+    return render_template('profile.html', user=g.user, res = reserve, visited = visited, wishlist = wishlist, user_followed = user_followed, fav_cuisine = most_common)
 
 @bp.route('/users')
 @login_required
