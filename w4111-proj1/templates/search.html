@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Restaurants{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="body">Type Here:</label>
+    <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
+    <input type="submit" value="Search!">
+  </form>
+  <br>
+    {% for r in restaurants %}
+        <hr>
+        <header>
+            <h1>{{ r['name'] }}</h1>
+            {% if r['trendy_flag']%}
+                <div class = "trendy">TRENDING!</div> 
+            {% endif %}
+        </header>
+        <body>
+            <div class = "desc"> A {{ r['restaurant_type'] }}restaurant in {{r['city']}}, {{r['state']}}that serves {{r['cuisine']}} cuisine!</div>
+            <div class = "price_range">Price Range: {{ r['price_range'] }}</div>
+            <div class = "phone_number">Contact: {{ r['phone_number'] }}</div>
+            <div class = "location">Address: {{ r['street_ad_1'] }} {{ r['street_ad_2'] }}, {{r['city']}}, {{r['state']}}, {{r['country']}} {{r['zipcode']}}</div>
+            <div></div>
+            <a href="{{ url_for('apl.reserve', r_id = r['r_id']) }}">Reserve a Slot!</a><br>
+            {% if r['r_id'] not in r_visited %}
+                <a href="{{ url_for('apl.visit', r_id = r['r_id']) }}">Mark as Visited!</a><br>
+            {% else %}
+                <div class = "alredy_visited">Visited Before</div>
+                {% if r['r_id'] not in r_rev %}
+                    <a href="{{ url_for('apl.visited') }}">Add a Review in your Visited Page!</a>
+                    <br>
+                {% else %}
+                    <a href="{{ url_for('apl.visited') }}">Overwrite Your Review in your Visited Page!</a>
+                    <br>
+                {% endif %}
+            {% endif %}
+            {% if r['r_id'] not in r_wish %}
+                <a href="{{ url_for('apl.wish', r_id = r['r_id']) }}">Add to Wishlist!</a><br>
+            {% else %}
+                <div class = "already_wishlist">Already on Wishlist!</div>
+            {% endif %}
+        </body> 
+    {% endfor %}
+{% endblock %}

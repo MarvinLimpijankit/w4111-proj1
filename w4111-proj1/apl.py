@@ -5,6 +5,8 @@ from flask import Blueprint, flash, g, redirect, render_template, request, sessi
 from sqlalchemy.sql.functions import user
 from auth import login_required
 from datetime import datetime 
+from sqlalchemy.sql import text
+
 
 bp = Blueprint('apl', __name__, url_prefix='/apl')
 
@@ -57,6 +59,60 @@ def home():
         r_rev.append(urev['r_id'])
 
     return render_template('home.html', user=g.user, restaurants = restaurants, r_visited = r_visited, r_wish = r_wish, r_rev = r_rev)
+
+@bp.route('/search', methods=('GET', 'POST'))
+@login_required
+def search(): 
+    
+    if request.method == 'POST': 
+        
+        query = request.form['body'].lower()
+    
+        g.conn = engine.connect()
+    
+        print(query)
+    
+        s = text("SELECT r.*, a.*, cui.cuisine FROM restaurants r\
+        LEFT JOIN addresses a ON r.a_id = a.a_id\
+        LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
+        FROM restaurants re\
+        LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
+        LEFT JOIN cuisines c ON ic.c_id = c.c_id\
+        GROUP BY re.r_id) as cui\
+        ON r.r_id = cui.r_id\
+        WHERE LOWER(r.name) LIKE :e1 OR\
+        LOWER(r.restaurant_type) LIKE :e1 OR\
+        LOWER(cui.cuisine) LIKE :e1")
+    
+        restaurants = g.conn.execute(s, e1 = '%' + query + '%').fetchall()
+    
+        #what has the user already visited
+        user_visited = g.conn.execute(
+            "SELECT v.r_id FROM users u LEFT JOIN visited v ON u.u_id = v.u_id WHERE u.u_id = %s", (g.user['u_id'])
+        ).fetchall()
+        r_visited = []
+        for uv in user_visited:
+            r_visited.append(uv['r_id'])
+    
+        #what has the user already wishlisted
+        user_wishlist = g.conn.execute(
+            "SELECT w.r_id FROM users u LEFT JOIN wants_to_eat w ON u.u_id = w.u_id WHERE u.u_id = %s",(g.user['u_id'])
+        ).fetchall()
+        r_wish = []
+        for uw in user_wishlist:
+            r_wish.append(uw['r_id'])
+    
+        #what has the user already reviewed
+        user_rev = g.conn.execute(
+            "SELECT rev.r_id FROM users u LEFT JOIN reviews rev ON u.u_id = rev.u_id WHERE u.u_id = %s",(g.user['u_id'])
+        ).fetchall()
+        r_rev = []
+        for urev in user_rev:
+            r_rev.append(urev['r_id'])
+            
+        return render_template('search.html', user=g.user, restaurants = restaurants, r_visited = r_visited, r_wish = r_wish, r_rev = r_rev)
+    
+    return render_template('search.html', user=g.user, restaurants = [], r_visited = [], r_wish = [], r_rev = [])
 
 @bp.route('/profile')
 @login_required
