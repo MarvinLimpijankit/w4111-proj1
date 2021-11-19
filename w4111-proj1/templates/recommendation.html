@@ -5,15 +5,21 @@
   <div>Recommendation Score based of cuisine, price-range and restaurant_type from positive reviews!</div>
 {% endblock %}
 
-{% block content %}
-    {% for r in resto %}
-        <hr>
-        <header>
-            <h1>{{ r[1] }}</h1>
-            
-        </header>
-        <body>
-            <div>Recommendation Score: {{ r[0] }}</div>
-        </body>
-    {% endfor %}
-{% endblock %}
+{% if recc_flag == 'TRUE'}
+    {% block content %}
+        {% for r in resto %}
+            <hr>
+            <header>
+                <h1>{{ r[1] }}</h1>
+                
+            </header>
+            <body>
+                <div>Recommendation Score: {{ r[0] }}</div>
+            </body>
+        {% endfor %}
+    {% endblock %}
+{% else %} 
+    <body>
+        <div>Rate at least one restaurant positively!</div>
+    </body>
+{% endif %}

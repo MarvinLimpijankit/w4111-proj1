@@ -364,17 +364,17 @@ def review(r_id):
         text_body = request.form['body']
 
         #checks if there is written text
-        is_written = 'TRUE'
-        if len(text_body) < 1:
-            is_written = 'FALSE'
-            text_body = 'NULL'
+        is_written = True
+        if len(text_body.strip()) < 1:
+            is_written = False
+            text_body = None
 
 
         #if review already exists then set rev_id then update star_Rating, is_written, textbody
         if exists_flag:
             rev_id = exists['rev_id']
 
-            g.conn.execute("UPDATE reviews SET star_rating = %s, is_written = %s, text_body = %s\
+            g.conn.execute("UPDATE reviews SET star_rating = %s, is_written = %s, text = %s\
                 WHERE rev_id = %s", (int(stars), is_written, text_body, rev_id))
 
             return redirect(url_for('apl.home'))
