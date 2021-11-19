@@ -500,20 +500,14 @@ def recommendation():
 
     #restaurant query
     restaurants = g.conn.execute(
-        "SELECT r.*, a.*, cui.cuisine,\
-        CASE\
-            WHEN ic.r_id IS NULL THEN 'FALSE'\
-            ELSE 'TRUE' END AS chain_flag\
+        "SELECT r.*, cui.cuisine\
         FROM restaurants r\
-        LEFT JOIN addresses a ON r.a_id = a.a_id\
         LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
         FROM restaurants re\
         LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
         LEFT JOIN cuisines c ON ic.c_id = c.c_id\
         GROUP BY re.r_id) as cui\
-        ON r.r_id = cui.r_id\
-        LEFT JOIN is_chain ic\
-        ON ic.r_id = r.r_id"
+        ON r.r_id = cui.r_id"
     ).fetchall()
 
     resto_list = []
