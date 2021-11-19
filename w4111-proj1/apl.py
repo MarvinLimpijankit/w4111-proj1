@@ -167,7 +167,9 @@ def profile():
         ORDER BY COUNT(*) DESC", (g.user['u_id'])
     ).fetchone()
 
-    if most_common is not None:
+    if most_common is None:
+        most_common = 'None'
+    else:
         most_common = most_common['cuisine_name']
 
     return render_template('profile.html', user=g.user, res = reserve, visited = visited, wishlist = wishlist, user_followed = user_followed, fav_cuisine = most_common)

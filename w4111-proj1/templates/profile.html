@@ -19,12 +19,14 @@
     </header>
     <body>
         {% for r in res %}
-            <div>{{r['name']}} @ {{r['reservation_datetime']}} for {{r['party_size']}} people!</div>
-            <div>Reservation Created @ {{r['booking_datetime']}}</div>
-            {% if r['is_cancelled'] %}
-                <div>CANCELLED!!! at {{r['cancelled_datetime']}}</div>
+            {% if r ['name']%}
+                <div>{{r['name']}} @ {{r['reservation_datetime']}} for {{r['party_size']}} people!</div>
+                <div>Reservation Created @ {{r['booking_datetime']}}</div>
+                {% if r['is_cancelled'] %}
+                    <div>CANCELLED!!! at {{r['cancelled_datetime']}}</div>
+                {% endif %}
+                <br>
             {% endif %}
-            <br>
         {% endfor %}
     </body>
 
@@ -34,14 +36,16 @@
     </header>
     <body>
         {% for r in visited %}
-            <div>{{r['name']}} @ {{r['date_visited']}}</div>
-            {% if r['rev_id'] %}
-                <div>Review: {{r['star_rating']}} Stars! @ {{r['created_date']}}</div>
-                {% if r['is_written'] %}
-                    <div>Post: {{r['text']}}</div>
+            {% if r ['name']%}
+                <div>{{r['name']}} @ {{r['date_visited']}}</div>
+                {% if r['rev_id'] %}
+                    <div>Review: {{r['star_rating']}} Stars! @ {{r['created_date']}}</div>
+                    {% if r['is_written'] %}
+                        <div>Post: {{r['text']}}</div>
+                    {% endif %}
                 {% endif %}
+                <br>
             {% endif %}
-            <br>
         {% endfor %}
     </body>
 
@@ -51,8 +55,10 @@
     </header>
     <body>
         {% for r in wishlist %}
-            <div>{{r['name']}}, date added: {{r['date_added']}}</div>
-            <br>
+            {% if r ['name']%}
+                <div>{{r['name']}}, date added: {{r['date_added']}}</div>
+                <br>
+            {% endif %}
         {% endfor %}
     </body>
 
