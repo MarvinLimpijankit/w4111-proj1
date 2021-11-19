@@ -478,53 +478,47 @@ def recommendation():
     if len(rev_3) >= 1:
         recc_flag = 'TRUE'
     
-    #recommendation checking
-    price_range = {}
-    res_type = {}
-    cuisine = {}
-
-    for rev in rev_3:
-        #pricerange
-        price_range[rev['price_range']] = price_range.get(rev['price_range'], 0)+1
-
-        #restaurant type
-        res_type[rev['restaurant_type']] = res_type.get(rev['restaurant_type'], 0)+1
-
-        #cuisine
-        for c in rev['cuisine'].split(","):
-            cuisine[c] = cuisine.get(c, 0)+1
-
-    print(price_range)
-    print(res_type)
-    print(cuisine)
-
-    #restaurant query
-    restaurants = g.conn.execute(
-        "SELECT r.*, cui.cuisine\
-        FROM restaurants r\
-        LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
-        FROM restaurants re\
-        LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
-        LEFT JOIN cuisines c ON ic.c_id = c.c_id\
-        GROUP BY re.r_id) as cui\
-        ON r.r_id = cui.r_id"
-    ).fetchall()
-
     resto_list = []
+    if recc_flag:
+        #recommendation checking
+        price_range = {}
+        res_type = {}
+        cuisine = {}
 
-    for r in restaurants:
-        curr_score = 0
-        
-        #recomendation score
-        curr_score += cuisine.get(r['cuisine'], 0)
-        curr_score += price_range.get(r['price_range'], 0)
-        curr_score += res_type.get(r['restaurant_type'], 0)
+        for rev in rev_3:
+            #pricerange
+            price_range[rev['price_range']] = price_range.get(rev['price_range'], 0)+1
 
-        resto_list.append((curr_score, r['name'].strip()))
+            #restaurant type
+            res_type[rev['restaurant_type']] = res_type.get(rev['restaurant_type'], 0)+1
 
-    #sort the list based on recommendation score
-    resto_list.sort(key = lambda x: x[0], reverse=True)
+            #cuisine
+            for c in rev['cuisine'].split(","):
+                cuisine[c] = cuisine.get(c, 0)+1
 
-    print(resto_list)
+        #restaurant query
+        restaurants = g.conn.execute(
+            "SELECT r.*, cui.cuisine\
+            FROM restaurants r\
+            LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
+            FROM restaurants re\
+            LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
+            LEFT JOIN cuisines c ON ic.c_id = c.c_id\
+            GROUP BY re.r_id) as cui\
+            ON r.r_id = cui.r_id"
+        ).fetchall()
+
+        for r in restaurants:
+            curr_score = 0
+            
+            #recomendation score
+            curr_score += cuisine.get(r['cuisine'], 0)
+            curr_score += price_range.get(r['price_range'], 0)
+            curr_score += res_type.get(r['restaurant_type'], 0)
+
+            resto_list.append((curr_score, r['name'].strip()))
+
+        #sort the list based on recommendation score
+        resto_list.sort(key = lambda x: x[0], reverse=True)
 
     return render_template('recommendation.html', user=g.user, resto=resto_list, recc_flag = recc_flag)

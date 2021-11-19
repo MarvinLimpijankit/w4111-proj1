@@ -5,8 +5,8 @@
   <div>Recommendation Score based of cuisine, price-range and restaurant_type from positive reviews!</div>
 {% endblock %}
 
-{% if recc_flag == 'TRUE'}
-    {% block content %}
+{% block content %}
+    {% if recc_flag == 'TRUE' %}
         {% for r in resto %}
             <hr>
             <header>
@@ -17,9 +17,10 @@
                 <div>Recommendation Score: {{ r[0] }}</div>
             </body>
         {% endfor %}
-    {% endblock %}
-{% else %} 
-    <body>
-        <div>Rate at least one restaurant positively!</div>
-    </body>
-{% endif %}
+    {% else %} 
+        <body>
+            <br>
+            <div>No Recommendations! Rate at least one restaurant positively!</div>
+        </body>
+    {% endif %}
+{% endblock %}
