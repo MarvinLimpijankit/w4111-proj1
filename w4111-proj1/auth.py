@@ -20,7 +20,7 @@ def register():
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         password = request.form['password']
-        g.conn = engine.connect()
+
         error = None
 
         #check none of the fields is null
@@ -67,7 +67,6 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        g.conn = engine.connect()
 
         error = None
         user = g.conn.execute(

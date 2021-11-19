@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Recommendation{% endblock %}</h1>
+  <div>Recommendation Score based of cuisine, price-range and restaurant_type from positive reviews!</div>
+{% endblock %}
+
+{% block content %}
+    {% for r in resto %}
+        <hr>
+        <header>
+            <h1>{{ r[1] }}</h1>
+            
+        </header>
+        <body>
+            <div>Recommendation Score: {{ r[0] }}</div>
+        </body>
+    {% endfor %}
+{% endblock %}

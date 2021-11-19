@@ -19,7 +19,6 @@ def home():
 #list of restaurants
 #user can add reservation (w/ time and date)
 #user can label a restaurant as visited or wishlisted
-    g.conn = engine.connect()
     restaurants = g.conn.execute(
         "SELECT r.*, a.*, cui.cuisine,\
         CASE\
@@ -36,9 +35,6 @@ def home():
         LEFT JOIN is_chain ic\
         ON ic.r_id = r.r_id"
     ).fetchall()
-
-    for r in restaurants:
-        print(r['trendy_flag'])
 
     #what has the user already visited
     user_visited = g.conn.execute(
@@ -73,8 +69,6 @@ def search():
     if request.method == 'POST': 
         
         query = request.form['body'].lower()
-    
-        g.conn = engine.connect()
     
         print(query)
     
@@ -123,7 +117,6 @@ def search():
 @bp.route('/profile')
 @login_required
 def profile():
-    g.conn = engine.connect()
 
 #show user current reservations
     reserve = g.conn.execute(
@@ -182,7 +175,6 @@ def profile():
 @bp.route('/users')
 @login_required
 def users():
-    g.conn = engine.connect()
 
     users_followed = g.conn.execute(
         "SELECT u.u_id, u.user_name,\
@@ -204,7 +196,6 @@ def users():
 @bp.route('/wishlist')
 @login_required
 def wishlist(): 
-    g.conn = engine.connect()
 
     #querying restaurant info for all rsetaurant in users wants to eat
     restaurants = g.conn.execute(
@@ -244,7 +235,6 @@ def wishlist():
 @bp.route('/visited')
 @login_required
 def visited(): 
-    g.conn = engine.connect()
     
     restaurants = g.conn.execute(
         "WITH t1 AS(\
@@ -284,7 +274,6 @@ def visited():
 @login_required
 def follow(u_id):
     if request.method == 'GET':
-        g.conn = engine.connect()
 
         g.conn.execute(
             "INSERT INTO follows (u_id, follows_id, follows_since) VALUES(%s,%s,NOW())",(g.user['u_id'], u_id))
@@ -296,7 +285,6 @@ def follow(u_id):
 @login_required
 def unfollow(u_id):
     if request.method == 'GET':
-        g.conn = engine.connect()
 
         g.conn.execute(
             "DELETE FROM follows f WHERE f.u_id = %s AND f.follows_id = %s",(g.user['u_id'], str(u_id)))
@@ -308,7 +296,6 @@ def unfollow(u_id):
 @login_required
 def wish(r_id):
     if request.method == 'GET':
-        g.conn = engine.connect()
 
         g.conn.execute(
             "INSERT INTO wants_to_eat (u_id, r_id, date_added) VALUES(%s,%s,NOW())",(g.user['u_id'], r_id))
@@ -320,7 +307,6 @@ def wish(r_id):
 @login_required
 def unwish(r_id):
     if request.method == 'GET':
-        g.conn = engine.connect()
 
         g.conn.execute(
             "DELETE FROM wants_to_eat w WHERE w.u_id = %s AND w.r_id = %s",(g.user['u_id'], str(r_id)))
@@ -334,8 +320,6 @@ def visit(r_id):
     
     if request.method == 'GET': 
         
-        g.conn = engine.connect()
-        
         g.conn.execute(
             "INSERT INTO visited (u_id, r_id, date_visited) VALUES(%s,%s,NOW())",(g.user['u_id'], r_id))
         
@@ -347,8 +331,6 @@ def visit(r_id):
 def unvisit(r_id):
     
     if request.method == 'GET': 
-        
-        g.conn = engine.connect()
         
         g.conn.execute(
             "DELETE FROM visited WHERE u_id = %s AND r_id = %s", (g.user['u_id'], str(r_id)))
@@ -449,9 +431,6 @@ def reserve(r_id):
 @bp.route('/reservations')
 @login_required
 def reservations(): 
-    
-    g.conn = engine.connect()
-
     reservations = g.conn.execute(
         'SELECT res.res_id, r.name, r.phone_number, res.reservation_datetime, res.is_cancelled, res.party_size, res.special_occassion\
          FROM reservations res\
@@ -467,10 +446,91 @@ def reservations():
 def cancel_reservation(res_id):
     
     if request.method == 'GET': 
-        
-        g.conn = engine.connect()
-        
         g.conn.execute(
             "UPDATE reservations SET cancelled_datetime = NOW(), is_cancelled = TRUE WHERE res_id = %s", str(res_id))
         
         return redirect(url_for('apl.reservations'))
+
+@bp.route('/recommendation')
+@login_required
+def recommendation():
+#list of restaurants
+#user can add reservation (w/ time and date)
+#user can label a restaurant as visited or wishlisted
+
+    #all restaurants that user has reviewed above 3 stars
+    rev_3 = g.conn.execute(
+        "SELECT *\
+        FROM users u\
+        LEFT JOIN reviews rev ON rev.u_id = u.u_id\
+        LEFT JOIN (SELECT r.*, cui.cuisine\
+        FROM restaurants r\
+        LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
+        FROM restaurants re\
+        LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
+        LEFT JOIN cuisines c ON ic.c_id = c.c_id\
+        GROUP BY re.r_id) as cui ON r.r_id = cui.r_id) as r_info ON r_info.r_id = rev.r_id\
+        WHERE u.u_id = %s AND rev.star_rating >= 3", (g.user['u_id'])
+    ).fetchall()
+
+    #check if there is actually 1 restaurants rated postively to build recommendations
+    recc_flag = 'FALSE'
+    if len(rev_3) >= 1:
+        recc_flag = 'TRUE'
+    
+    #recommendation checking
+    price_range = {}
+    res_type = {}
+    cuisine = {}
+
+    for rev in rev_3:
+        #pricerange
+        price_range[rev['price_range']] = price_range.get(rev['price_range'], 0)+1
+
+        #restaurant type
+        res_type[rev['restaurant_type']] = res_type.get(rev['restaurant_type'], 0)+1
+
+        #cuisine
+        for c in rev['cuisine'].split(","):
+            cuisine[c] = cuisine.get(c, 0)+1
+
+    print(price_range)
+    print(res_type)
+    print(cuisine)
+
+    #restaurant query
+    restaurants = g.conn.execute(
+        "SELECT r.*, a.*, cui.cuisine,\
+        CASE\
+            WHEN ic.r_id IS NULL THEN 'FALSE'\
+            ELSE 'TRUE' END AS chain_flag\
+        FROM restaurants r\
+        LEFT JOIN addresses a ON r.a_id = a.a_id\
+        LEFT JOIN ( SELECT re.r_id, STRING_AGG(c.cuisine_name, \', \') as cuisine\
+        FROM restaurants re\
+        LEFT JOIN is_cuisine ic ON ic.r_id = re.r_id\
+        LEFT JOIN cuisines c ON ic.c_id = c.c_id\
+        GROUP BY re.r_id) as cui\
+        ON r.r_id = cui.r_id\
+        LEFT JOIN is_chain ic\
+        ON ic.r_id = r.r_id"
+    ).fetchall()
+
+    resto_list = []
+
+    for r in restaurants:
+        curr_score = 0
+        
+        #recomendation score
+        curr_score += cuisine.get(r['cuisine'], 0)
+        curr_score += price_range.get(r['price_range'], 0)
+        curr_score += res_type.get(r['restaurant_type'], 0)
+
+        resto_list.append((curr_score, r['name'].strip()))
+
+    #sort the list based on recommendation score
+    resto_list.sort(key = lambda x: x[0], reverse=True)
+
+    print(resto_list)
+
+    return render_template('recommendation.html', user=g.user, resto=resto_list, recc_flag = recc_flag)
